@@ -17,3 +17,9 @@ func WithPgxAdapter(conn PgxConn) Option {
 		cm.adapter = newPgx(conn)
 	}
 }
+
+func WithAdapter(adapter Adapter) Option {
+	return func(cm *contextManager) {
+		cm.adapter = adapter
+	}
+}
