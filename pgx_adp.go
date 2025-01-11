@@ -1,4 +1,4 @@
-package manager
+package txmanager
 
 import (
 	"context"
@@ -10,8 +10,6 @@ import (
 
 type PgxConn interface {
 	Begin(ctx context.Context) (pgx.Tx, error)
-	Commit(ctx context.Context) error
-	Rollback(ctx context.Context) error
 	Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
 	Exec(ctx context.Context, sql string, args ...interface{}) (pgconn.CommandTag, error)
 }
