@@ -42,7 +42,6 @@ func newSQL(db *sql.DB) *SqlAdapter {
 	return &SqlAdapter{db: db}
 }
 
-// Begin starts a new transaction
 func (a *SqlAdapter) Begin(ctx context.Context) (Tx, error) {
 	tx, err := a.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -70,7 +69,6 @@ func (a *SqlAdapter) Query(ctx context.Context, sql string, args ...interface{})
 	return &SqlRows{rows: rows}, nil
 }
 
-// Exec executes a command
 func (a *SqlAdapter) Exec(ctx context.Context, sql string, args ...interface{}) error {
 	tx := getTxFromCtx(ctx)
 	if tx != nil {

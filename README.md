@@ -122,6 +122,12 @@ func main() {
 }
 ```
 
+## Adapters
+
+You can use already implemented adapters for popular database drivers:
+- `txmanager.WithPgxAdapter(conn *pgx.Conn)` - Use the `pgx/v4` driver.
+- `txmanager.WithSqlAdapter(db *sql.DB)` - Use the `database/sql` driver.
+
 ## Custom Adapters
 
 You can implement your own adapter to work with a custom database or driver. A custom adapter must implement the `Adapter` interface.
