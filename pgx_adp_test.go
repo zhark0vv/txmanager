@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/pashagolub/pgxmock"
+	"github.com/pashagolub/pgxmock/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -48,6 +48,40 @@ func TestPgxAdapter(t *testing.T) {
 
 		err := m.Exec(ctx, "UPDATE users SET name = $1 WHERE id = $2", "John Doe", 1)
 		require.NoError(t, err)
+	})
+
+	t.Run("Get", func(t *testing.T) {
+		mock.ExpectBegin()
+		ctx, err = m.Start(ctx)
+		require.NoError(t, err)
+
+		mock.ExpectQuery(`SELECT name FROM users WHERE id = \$1`).
+			WithArgs(1).
+			WillReturnRows(mock.NewRows([]string{"name"}).AddRow("John Doe"))
+
+		var name string
+		err = m.Get(ctx, &name, "SELECT name FROM users WHERE id = $1", 1)
+		require.NoError(t, err)
+		require.Equal(t, "John Doe", name)
+	})
+
+	require.NoError(t, mock.ExpectationsWereMet())
+
+	t.Run("Select", func(t *testing.T) {
+		mock.ExpectBegin()
+		ctx, err = m.Start(ctx)
+		require.NoError(t, err)
+
+		mock.ExpectQuery(`SELECT name FROM users WHERE id > \$1`).
+			WithArgs(1).
+			WillReturnRows(mock.NewRows(
+				[]string{"name"}).AddRow("John Doe").AddRow("Jane Smith"))
+
+		var name []string
+		err = m.Select(ctx, &name, "SELECT name FROM users WHERE id > $1", 1)
+		require.NoError(t, err)
+
+		require.Equal(t, []string{"John Doe", "Jane Smith"}, name)
 	})
 
 	require.NoError(t, mock.ExpectationsWereMet())

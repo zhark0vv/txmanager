@@ -3,9 +3,10 @@ package txmanager
 import (
 	"context"
 	"fmt"
+	"github.com/georgysavva/scany/v2/pgxscan"
+	"github.com/jackc/pgx/v5/pgconn"
 
-	"github.com/jackc/pgconn"
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v5"
 )
 
 type PgxConn interface {
@@ -77,6 +78,40 @@ func (a *PgxAdapter) Exec(ctx context.Context, sql string, args ...interface{}) 
 	_, err := a.conn.Exec(ctx, sql, args...)
 	if err != nil {
 		return fmt.Errorf("cannot exec: %w", err)
+	}
+	return nil
+}
+
+func (a *PgxAdapter) Select(ctx context.Context, dest interface{}, sql string, args ...interface{}) error {
+	tx := getTxFromCtx(ctx)
+	if tx != nil {
+		if pgxTx, ok := tx.(*PgxTx); ok {
+			if err := pgxscan.Select(ctx, pgxTx.raw, dest, sql, args...); err != nil {
+				return fmt.Errorf("pgxscan select in transaction: %w", err)
+			}
+			return nil
+		}
+	}
+
+	if err := pgxscan.Select(ctx, a.conn, dest, sql, args...); err != nil {
+		return fmt.Errorf("pgxscan select: %w", err)
+	}
+	return nil
+}
+
+func (a *PgxAdapter) Get(ctx context.Context, dest interface{}, sql string, args ...interface{}) error {
+	tx := getTxFromCtx(ctx)
+	if tx != nil {
+		if pgxTx, ok := tx.(*PgxTx); ok {
+			if err := pgxscan.Get(ctx, pgxTx.raw, dest, sql, args...); err != nil {
+				return fmt.Errorf("pgxscan get in transaction: %w", err)
+			}
+			return nil
+		}
+	}
+
+	if err := pgxscan.Get(ctx, a.conn, dest, sql, args...); err != nil {
+		return fmt.Errorf("pgxscan get: %w", err)
 	}
 	return nil
 }

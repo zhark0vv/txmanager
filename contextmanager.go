@@ -29,6 +29,8 @@ type Adapter interface {
 	Begin(ctx context.Context) (Tx, error)
 	Query(ctx context.Context, sql string, args ...interface{}) (Rows, error)
 	Exec(ctx context.Context, sql string, args ...interface{}) error
+	Select(ctx context.Context, dst interface{}, query string, args ...interface{}) error
+	Get(ctx context.Context, dst interface{}, query string, args ...interface{}) error
 }
 
 // ContextManager управляет транзакциями на уровне сервисного слоя
@@ -37,6 +39,8 @@ type ContextManager interface {
 	Finish(ctx context.Context, err error) error
 	Query(ctx context.Context, sql string, args ...interface{}) (Rows, error)
 	Exec(ctx context.Context, sql string, args ...interface{}) error
+	Select(ctx context.Context, dst interface{}, query string, args ...interface{}) error
+	Get(ctx context.Context, dst interface{}, query string, args ...interface{}) error
 }
 
 // contextManager — конкретная реализация ContextManager
@@ -104,4 +108,12 @@ func (cm *contextManager) Query(ctx context.Context, sql string, args ...interfa
 
 func (cm *contextManager) Exec(ctx context.Context, sql string, args ...interface{}) error {
 	return cm.adapter.Exec(ctx, sql, args...)
+}
+
+func (cm *contextManager) Select(ctx context.Context, dst interface{}, query string, args ...interface{}) error {
+	return cm.adapter.Select(ctx, dst, query, args...)
+}
+
+func (cm *contextManager) Get(ctx context.Context, dst interface{}, query string, args ...interface{}) error {
+	return cm.adapter.Get(ctx, dst, query, args...)
 }
